@@ -1,5 +1,5 @@
-// Perform an API call to the USGS geojson feed (last 7 days)
-var earthquakeURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+// Perform an API call to the USGS geojson feed (last day)
+var earthquakeURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
 
 
 d3.json(earthquakeURL).then(function(data) {
@@ -16,19 +16,48 @@ function createFeatures(earthquakeData) {
         "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
     } // ends pop-up binding
 
+    // Create function for circle size based on magnitude
+    function circleSize(mag) {
+        return mag * 5
+    }; // ends size function
+
+// Create function for circle color based on depth
+    function circleColor(depth) {
+        if (depth <= 0) {
+            return "#ff63d9"
+        }
+        else if (depth <= 20) {
+            return "#e552d9"
+        }
+        else if (depth <= 40) {
+            return "#ca42da"
+        }
+        else if (depth <= 60) {
+            return "#ae31da"
+        }
+        else if (depth <= 80) {
+            return "#8f1fd9"
+        }
+        else {
+            return "#6b0bd9"
+        }
+    }; // ends color function
+
     // Create new geojson layer
     var earthquakes = L.geoJson(earthquakeData, {
         pointToLayer: function(feature, latlng) {
             return new L.CircleMarker(latlng, {
                 radius: circleSize(feature.properties.mag),
-                fillColor: circleColor(feature.properties.mag)
+                color: circleColor(feature.geometry.coordinates[2]),
+                fillColor: circleColor(feature.geometry.coordinates[2]),
+                fillOpacity: 0.75
             }); // ends circleMarker formatting
         }, // ends point to layer conversion function
         onEachFeature: onEachFeature
     }); // ends earthquake layer
 
     // Send earthquakes layer to createMap function
-    createMap(earthquakes)
+    createMap(earthquakes);
 } // ends createFeatures function
 
 
@@ -62,7 +91,7 @@ function createMap(earthquakes) {
     }; // ends overlayMap
 
     // Create map object w/ options
-    var myMap = L.map("mapid", {
+    var myMap = L.map("map", {
         center: [37.09, -95.71],
         zoom: 5,
         layers: [outdoorsmap, earthquakes]
@@ -72,38 +101,28 @@ function createMap(earthquakes) {
     L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
     }).addTo(myMap);
+
+    // Build legend
+    var legend = L.control({ position: "bottomright" });
+    legend.onAdd = function() {
+        var div = L.DomUtil.create("div", "info legend");
+        var depth = [0, 20, 40, 60, 80];
+        var colors = [
+            "#6b0bd9", 
+            "#ff63d9",
+            "#e552d9",
+            "#ca42da",
+            "#ae31da",
+            "#8f1fd9"
+        ];
+
+        // Loop to add colors to legend
+        for (var i = 0; i < depth.length; i++) {
+            div.innerHTML += "<i style='background: " + colors[i] + "'></i> " +
+            depth[i] + (depth[i + 1] ? "&ndash;" + depth[i + 1] + "<br>" : "+");
+        }
+        return div;
+    }; // ends legend
+    // Add legend to map
+    legend.addTo(myMap);
 } // ends createMap function
-
-// Create function for circle size based on magnitude
-function circleSize(mag) {
-    return mag * 20000
-}; // ends size function
-
-// Create function for circle color based on depth
-function circleColor(mag) {
-    if (mag <= 1) {
-        return "#ff63d9"
-    }
-    else if (mag <= 2) {
-        return "#e552d9"
-    }
-    else if (mag <= 3) {
-        return "#ca42da"
-    }
-    else if (mag <= 4) {
-        return "#ae31da"
-    }
-    else if (mag <= 5) {
-        return "#8f1fd9"
-    }
-    else {
-        return "#6b0bd9"
-    }
-}; // ends color function
-
-
-
-
-
-
-// Build legend

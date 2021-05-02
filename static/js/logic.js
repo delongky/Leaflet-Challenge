@@ -84,8 +84,7 @@ function createMap(earthquakes) {
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function() {
         var div = L.DomUtil.create("div", "info legend");
-        var depth = [0, 20, 40, 60, 80];
-        var labels = []
+        var eqDepth = [0, 20, 40, 60, 80];
         var colors = [
             "#6b0bd9", 
             "#ff63d9",
@@ -94,12 +93,13 @@ function createMap(earthquakes) {
             "#ae31da",
             "#8f1fd9"
         ];
-
+        div.innerHTML += "<b>Depth</b><br><hr>";
         // Loop to add colors to legend
-        for (var i = 0; i < depth.length; i++) {
+        for (var i = 0; i < eqDepth.length; i++) {
+        // depth.forEach(i => {
             div.innerHTML += "<i style='background: " + colors[i] + "'></i> " +
-            depth[i] + (depth[i + 1] ? "&ndash;" + depth[i + 1] + "<br>" : "+");
-        }
+            eqDepth[i] + (eqDepth[i + 1] ? "&ndash;" + eqDepth[i + 1] + "<br>" : "+");
+        };
         return div;
     }; // ends legend
     // Add legend to map
